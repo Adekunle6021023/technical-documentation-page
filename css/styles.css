@@ -1,0 +1,155 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    text-decoration: none;
+}
+
+ul {
+    list-style: none;
+}
+
+body {
+    font-family: 'Quicksand', sans-serif;
+    color: #3676cc;
+}
+
+.nav {
+    position: fixed;
+    min-width: 290px;
+    top: 0px;
+    left: 0px;
+    width: 300px;
+    height: 100%;
+    border-right: solid #3676cc;
+    ;
+}
+
+.nav .nav-header {
+    font-size: 2.4rem;
+    text-align: center;
+    padding: 1rem;
+}
+
+.nav ul li {
+    color: #3676cc;
+    border-top: 1px solid;
+    list-style: none;
+    position: relative;
+    width: 100%;
+}
+
+.nav ul li a {
+    display: block;
+    padding: 10px 30px;
+    color: #3676cc;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.nav ul li a:hover {
+    color: #ffffff;
+    background-color: #3676cc;
+}
+
+.main {
+    position: absolute;
+    margin-left: 310px;
+    padding: 20px;
+    margin-bottom: 110px;
+    color: #3676cc;
+}
+
+.main .main-section {
+    margin-top: 1.25rem;
+}
+
+.main .section-title {
+    font-size: 2.6rem;
+}
+
+.main b {
+    font-size: 1.55rem;
+}
+
+.main article p {
+    color: #3676cc;
+    line-height: 1.5;
+    font-weight: 400;
+    margin-top: 0.50rem;
+    padding: 1rem;
+}
+
+.main ul li {
+    line-height: 1.5;
+    font-weight: 400;
+    margin-top: 0.5rem;
+    list-style-type: square;
+    margin-left: 5%;
+}
+
+.main .code-block {
+    padding: 0.75rem;
+    background-color: #3676cc;
+    color: #ffffff !important;
+    font-family: monospace;
+    margin: 0 1.5rem;
+    border: 3px #253e5f solid;
+}
+
+.main .reference a {
+    color: #253e5f;
+    font-weight: 500;
+    text-decoration: underline;
+}
+
+/**MEDIA QUERIES*/
+
+@media only screen and (max-width: 815px) {
+
+    /* For mobile phones: */
+    .nav ul {
+        border: 1px solid;
+        height: auto;
+        overflow-y: auto;
+    }
+
+    .nav {
+        position: absolute;
+        top: 0;
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        max-height: 300px;
+        border: none;
+        z-index: 1;
+        border-bottom: 2px solid;
+        overflow: scroll;
+        overflow-x: hidden;
+    }
+
+    .main {
+        position: relative;
+        margin-left: 0px;
+        margin-top: 270px;
+        width: 100%;
+    }
+}
+
+@media only screen and (max-width: 400px) {
+    .main {
+        margin-left: -10px;
+    }
+
+    code {
+        margin-left: -20px;
+        width: 100%;
+        padding: 15px;
+        padding-left: 10px;
+        padding-right: 45px;
+        min-width: 233px;
+    }
+}

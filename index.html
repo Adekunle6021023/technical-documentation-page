@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="description" content="Technical Documentation Page">
+    <title>Technical Documentation Page | freeCodeCamp Project</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <nav id="nav-bar" class="nav">
+        <header class="nav-header">Python Documentation</header>
+        <ul>
+            <li><a href="#intro" class="nav-link">Introduction</a></li>
+            <li><a href="#notation" class="nav-link">Notation</a></li>
+            <li><a href="#lexical-analysis" class="nav-link">Lexical Analysis</a></li>
+            <li><a href="#data-model" class="nav-link">Data Model</a></li>
+            <li><a href="#execution-model" class="nav-link">Execution Model</a></li>
+            <li><a href="#the-import-system" class="nav-link">The Import System</a></li>
+            <li><a href="#expressions" class="nav-link">Expressions</a></li>
+            <li><a href="#references" class="nav-link">References</a></li>
+        </ul>
+    </nav>
+    <main id="main-doc" class="main">
+        <section class="main-section">
+            <header class="section-title" id="intro">Introduction</header>
+            <article>
+                <p>This reference manual describes the Python programming language. It is not intended as a tutorial.
+
+                    While I am trying to be as precise as possible, I chose to use English rather than formal
+                    specifications for everything except syntax and lexical analysis. This should make the document more
+                    understandable to the average reader, but will leave room for ambiguities. Consequently, if you were
+                    coming from Mars and tried to re-implement Python from this document alone, you might have to guess
+                    things and in fact you would probably end up implementing quite a different language. On the other
+                    hand, if you are using Python and wonder what the precise rules about a particular area of the
+                    language are, you should definitely be able to find them here. If you would like to see a more
+                    formal definition of the language, maybe you could volunteer your time — or invent a cloning machine
+                    :-).</p>
+                <p>
+                    <h1><b>Alternate Implementations</b></h1>
+                    Though there is one Python implementation which is by far the most popular, there are some alternate
+                    implementations which are of particular interest to different audiences.
+
+                    Known implementations include:
+
+                    <ul>
+                        <li>
+                            <b>CPython</b><br>
+                            This is the original and most-maintained implementation of Python, written in C. New
+                            language features generally appear here first.
+                        </li>
+                        <li>
+                            <b>Jython</b><br>
+                            Python implemented in Java. This implementation can be used as a scripting language for Java
+                            applications, or can be used to create applications using the Java class libraries. It is
+                            also often used to create tests for Java libraries.
+                        </li>
+                        <li>
+                            <b>Python for .NET</b><br>
+                            This implementation actually uses the CPython implementation, but is a managed .NET
+                            application and makes .NET libraries available.
+                        </li>
+                        <li>
+                            <b>IronPython</b><br>
+                            An alternate Python for .NET. Unlike Python.NET, this is a complete Python implementation
+                            that generates IL, and compiles Python code directly to .NET assemblies. It was created by
+                            Jim Hugunin,the original creator of Jython.
+                        </li>
+                        <li>
+                            <b>PyPy</b><br>
+                            An implementation of Python written completely in Python. It supports several advanced
+                            features not found in other implementations like stackless support and a Just in Time
+                            compiler. One of the goals of the project is to encourage experimentation with the language
+                            itself by making it easier to modify the interpreter (since it is written in Python).
+                        </li>
+                    </ul>
+                </p>
+            </article>
+        </section>
+        <section class="main-section">
+            <header class="section-title" id="notation">Notation</header>
+            <article>
+                <p>
+                    The descriptions of lexical analysis and syntax use a modified BNF grammar notation. This uses the
+                    following style of definition:
+                </p>
+                <p class="code-block">
+                    <code>
+                        name ::= lc_letter (lc_letter | "_")*<br>
+                        lc_letter ::= "a"..."z"
+                    </code>
+                </p>
+                <p>
+                    <ul>
+                        <li>
+                            The first line says that a name is an lc_letter followed by a sequence of zero or more
+                            lc_letters and underscores. An lc_letter in turn is any of the single characters 'a' through
+                            'z'. (This rule is actually adhered to for the names defined in lexical and grammar rules in
+                            this document.)
+                        </li>
+                        <li>
+                            Each rule begins with a name (which is the name defined by the rule) and ::=. A vertical bar
+                            (|) is used to separate alternatives; it is the least binding operator in this notation. A
+                            star (*) means zero or more repetitions of the preceding item; likewise, a plus (+) means
+                            one or more repetitions, and a phrase enclosed in square brackets ([ ]) means zero or one
+                            occurrences (in other words, the enclosed phrase is optional). The * and + operators bind as
+                            tightly as possible; parentheses are used for grouping. Literal strings are enclosed in
+                            quotes. White space is only meaningful to separate tokens. Rules are normally contained on a
+                            single line; rules with many alternatives may be formatted alternatively with each line
+                            after the first beginning with a vertical bar.
+                        </li>
+                        <li>
+                            In lexical definitions (as the example above), two more conventions are used: Two literal
+                            characters separated by three dots mean a choice of any single character in the given
+                            (inclusive) range of ASCII characters. A phrase between angular brackets (<...>) gives an
+                                informal description of the symbol defined; e.g., this could be used to describe the
+                                notion of ‘control character’ if needed.
+                        </li>
+                        <li>
+                            Even though the notation used is almost the same, there is a big difference between the
+                            meaning of lexical and syntactic definitions: a lexical definition operates on the
+                            individual characters of the input source, while a syntax definition operates on the stream
+                            of tokens generated by the lexical analysis. All uses of BNF in the next chapter (“Lexical
+                            Analysis”) are lexical definitions; uses in subsequent chapters are syntactic definitions.
+                        </li>
+                    </ul>
+                </p>
+            </article>
+        </section>
+        <section class="main-section">
+            <header class="section-title" id="lexical-analysis">Lexical Analysis</header>
+            <article>
+                <p>
+                    A Python program is read by a parser. Input to the parser is a stream of tokens, generated by the
+                    lexical analyzer. This chapter describes how the lexical analyzer breaks a file into tokens.
+
+                    Python reads program text as Unicode code points; the encoding of a source file can be given by an
+                    encoding declaration and defaults to UTF-8, see PEP 3120 for details. If the source file cannot be
+                    decoded, a SyntaxError is raised.
+                </p>
+                <p>
+                    <b>Physical lines</b><br>
+                    A physical line is a sequence of characters terminated by an end-of-line sequence. In source files
+                    and strings, any of the standard platform line termination sequences can be used - the Unix form
+                    using ASCII LF (linefeed), the Windows form using the ASCII sequence CR LF (return followed by
+                    linefeed), or the old Macintosh form using the ASCII CR (return) character. All of these forms can
+                    be
+                    used equally, regardless of platform. The end of input also serves as an implicit terminator for the
+                    final physical line.
+
+                    When embedding Python, source code strings should be passed to Python APIs using the standard C
+                    conventions for newline characters (the \n character, representing ASCII LF, is the line
+                    terminator).
+                </p>
+                <p>
+                    <b>Indentation</b><br>
+                    Leading whitespace (spaces and tabs) at the beginning of a logical line is used to compute the
+                    indentation level of the line, which in turn is used to determine the grouping of statements.
+
+                    Tabs are replaced (from left to right) by one to eight spaces such that the total number of
+                    characters up to and including the replacement is a multiple of eight (this is intended to be the
+                    same rule as used by Unix). The total number of spaces preceding the first non-blank character then
+                    determines the line’s indentation. Indentation cannot be split over multiple physical lines using
+                    backslashes; the whitespace up to the first backslash determines the indentation.
+
+                    Indentation is rejected as inconsistent if a source file mixes tabs and spaces in a way that makes
+                    the meaning dependent on the worth of a tab in spaces; a TabError is raised in that case.
+
+                    Cross-platform compatibility note: because of the nature of text editors on non-UNIX platforms, it
+                    is unwise to use a mixture of spaces and tabs for the indentation in a single source file. It should
+                    also be noted that different platforms may explicitly limit the maximum indentation level.
+
+                    A formfeed character may be present at the start of the line; it will be ignored for the indentation
+                    calculations above. Formfeed characters occurring elsewhere in the leading whitespace have an
+                    undefined effect (for instance, they may reset the space count to zero).
+
+                    The indentation levels of consecutive lines are used to generate INDENT and DEDENT tokens, using a
+                    stack, as follows.
+
+                    Before the first line of the file is read, a single zero is pushed on the stack; this will never be
+                    popped off again. The numbers pushed on the stack will always be strictly increasing from bottom to
+                    top. At the beginning of each logical line, the line’s indentation level is compared to the top of
+                    the stack. If it is equal, nothing happens. If it is larger, it is pushed on the stack, and one
+                    INDENT token is generated. If it is smaller, it must be one of the numbers occurring on the stack;
+                    all numbers on the stack that are larger are popped off, and for each number popped off a DEDENT
+                    token is generated. At the end of the file, a DEDENT token is generated for each number remaining on
+                    the stack that is larger than zero.
+                </p>
+            </article>
+        </section>
+        <section class="main-section">
+            <header class="section-title" id="data-model">Data Model</header>
+            <article>
+                <p>
+                    <b>Objects, values and types</b><br>
+                    Objects are Python’s abstraction for data. All data in a Python program is represented by objects or
+                    by relations between objects. (In a sense, and in conformance to Von Neumann’s model of a “stored
+                    program computer”, code is also represented by objects.)
+
+                    Every object has an identity, a type and a value. An object’s identity never changes once it has
+                    been created; you may think of it as the object’s address in memory. The ‘is’ operator compares the
+                    identity of two objects; the id() function returns an integer representing its identity.
+
+                    CPython implementation detail: For CPython, id(x) is the memory address where x is stored.
+
+                    An object’s type determines the operations that the object supports (e.g., “does it have a length?”)
+                    and also defines the possible values for objects of that type. The type() function returns an
+                    object’s type (which is an object itself). Like its identity, an object’s type is also unchangeable.
+                    1
+
+                    The value of some objects can change. Objects whose value can change are said to be mutable; objects
+                    whose value is unchangeable once they are created are called immutable. (The value of an immutable
+                    container object that contains a reference to a mutable object can change when the latter’s value is
+                    changed; however the container is still considered immutable, because the collection of objects it
+                    contains cannot be changed. So, immutability is not strictly the same as having an unchangeable
+                    value, it is more subtle.) An object’s mutability is determined by its type; for instance, numbers,
+                    strings and tuples are immutable, while dictionaries and lists are mutable.
+
+                    Objects are never explicitly destroyed; however, when they become unreachable they may be
+                    garbage-collected. An implementation is allowed to postpone garbage collection or omit it altogether
+                    — it is a matter of implementation quality how garbage collection is implemented, as long as no
+                    objects are collected that are still reachable.
+
+                    CPython implementation detail: CPython currently uses a reference-counting scheme with (optional)
+                    delayed detection of cyclically linked garbage, which collects most objects as soon as they become
+                    unreachable, but is not guaranteed to collect garbage containing circular references. See the
+                    documentation of the gc module for information on controlling the collection of cyclic garbage.
+                    Other implementations act differently and CPython may change. Do not depend on immediate
+                    finalization of objects when they become unreachable (so you should always close files explicitly).
+
+                    Note that the use of the implementation’s tracing or debugging facilities may keep objects alive
+                    that would normally be collectable. Also note that catching an exception with a ‘try…except’
+                    statement may keep objects alive.
+
+                    Some objects contain references to “external” resources such as open files or windows. It is
+                    understood that these resources are freed when the object is garbage-collected, but since garbage
+                    collection is not guaranteed to happen, such objects also provide an explicit way to release the
+                    external resource, usually a close() method. Programs are strongly recommended to explicitly close
+                    such objects. The ‘try…finally’ statement and the ‘with’ statement provide convenient ways to do
+                    this.
+
+                    Some objects contain references to other objects; these are called containers. Examples of
+                    containers are tuples, lists and dictionaries. The references are part of a container’s value. In
+                    most cases, when we talk about the value of a container, we imply the values, not the identities of
+                    the contained objects; however, when we talk about the mutability of a container, only the
+                    identities of the immediately contained objects are implied. So, if an immutable container (like a
+                    tuple) contains a reference to a mutable object, its value changes if that mutable object is
+                    changed.
+
+                    Types affect almost all aspects of object behavior. Even the importance of object identity is
+                    affected in some sense: for immutable types, operations that compute new values may actually return
+                    a reference to any existing object with the same type and value, while for mutable objects this is
+                    not allowed. E.g., after a = 1; b = 1, a and b may or may not refer to the same object with the
+                    value one, depending on the implementation, but after c = []; d = [], c and d are guaranteed to
+                    refer to two different, unique, newly created empty lists. (Note that c = d = [] assigns the same
+                    object to both c and d.)
+                </p>
+                <p>
+                    <b>Special method names</b><br>
+                    A class can implement certain operations that are invoked by special syntax (such as arithmetic
+                    operations or subscripting and slicing) by defining methods with special names. This is Python’s
+                    approach to operator overloading, allowing classes to define their own behavior with respect to
+                    language operators. For instance, if a class defines a method named __getitem__(), and x is an
+                    instance of this class, then x[i] is roughly equivalent to type(x).__getitem__(x, i). Except where
+                    mentioned, attempts to execute an operation raise an exception when no appropriate method is defined
+                    (typically AttributeError or TypeError).
+
+                    Setting a special method to None indicates that the corresponding operation is not available. For
+                    example, if a class sets __iter__() to None, the class is not iterable, so calling iter() on its
+                    instances will raise a TypeError (without falling back to __getitem__()). 2
+
+                    When implementing a class that emulates any built-in type, it is important that the emulation only
+                    be implemented to the degree that it makes sense for the object being modelled. For example, some
+                    sequences may work well with retrieval of individual elements, but extracting a slice may not make
+                    sense. (One example of this is the NodeList interface in the W3C’s Document Object Model.)
+                </p>
+            </article>
+        </section>
+        <section class="main-section">
+            <header class="section-title" id="execution-model">Execution Model</header>
+            <article>
+                <p>
+                    <b>Structure of a program</b><br>
+                    A Python program is constructed from code blocks. A block is a piece of Python program text that is
+                    executed as a unit. The following are blocks: a module, a function body, and a class definition.
+                    Each command typed interactively is a block. A script file (a file given as standard input to the
+                    interpreter or specified as a command line argument to the interpreter) is a code block. A script
+                    command (a command specified on the interpreter command line with the -c option) is a code block. A
+                    module run as a top level script (as module __main__) from the command line using a -m argument is
+                    also a code block. The string argument passed to the built-in functions eval() and exec() is a code
+                    block.
+
+                    A code block is executed in an execution frame. A frame contains some administrative information
+                    (used for debugging) and determines where and how execution continues after the code block’s
+                    execution has completed.
+                </p>
+                <p>
+                    <b>Resolution of names</b><br>
+                    A scope defines the visibility of a name within a block. If a local variable is defined in a block,
+                    its scope includes that block. If the definition occurs in a function block, the scope extends to
+                    any blocks contained within the defining one, unless a contained block introduces a different
+                    binding for the name.
+
+                    When a name is used in a code block, it is resolved using the nearest enclosing scope. The set of
+                    all such scopes visible to a code block is called the block’s environment.
+
+                    When a name is not found at all, a NameError exception is raised. If the current scope is a function
+                    scope, and the name refers to a local variable that has not yet been bound to a value at the point
+                    where the name is used, an UnboundLocalError exception is raised. UnboundLocalError is a subclass of
+                    NameError.
+
+                    If a name binding operation occurs anywhere within a code block, all uses of the name within the
+                    block are treated as references to the current block. This can lead to errors when a name is used
+                    within a block before it is bound. This rule is subtle. Python lacks declarations and allows name
+                    binding operations to occur anywhere within a code block. The local variables of a code block can be
+                    determined by scanning the entire text of the block for name binding operations.
+
+                    If the global statement occurs within a block, all uses of the name specified in the statement refer
+                    to the binding of that name in the top-level namespace. Names are resolved in the top-level
+                    namespace by searching the global namespace, i.e. the namespace of the module containing the code
+                    block, and the builtins namespace, the namespace of the module builtins. The global namespace is
+                    searched first. If the name is not found there, the builtins namespace is searched. The global
+                    statement must precede all uses of the name.
+
+                    The global statement has the same scope as a name binding operation in the same block. If the
+                    nearest enclosing scope for a free variable contains a global statement, the free variable is
+                    treated as a global.
+
+                    The nonlocal statement causes corresponding names to refer to previously bound variables in the
+                    nearest enclosing function scope. SyntaxError is raised at compile time if the given name does not
+                    exist in any enclosing function scope.
+
+                    The namespace for a module is automatically created the first time a module is imported. The main
+                    module for a script is always called __main__.
+
+                    Class definition blocks and arguments to exec() and eval() are special in the context of name
+                    resolution. A class definition is an executable statement that may use and define names. These
+                    references follow the normal rules for name resolution with an exception that unbound local
+                    variables are looked up in the global namespace. The namespace of the class definition becomes the
+                    attribute dictionary of the class. The scope of names defined in a class block is limited to the
+                    class block; it does not extend to the code blocks of methods – this includes comprehensions and
+                    generator expressions since they are implemented using a function scope. This means that the
+                    following will fail:
+                    <p class="code-block">
+                        <code>
+                            class A: <br>
+                            a = 42<br>
+                            b = list(a + i for i in range(10))
+                        </code>
+                    </p>
+                </p>
+                <p>
+                    <b>Interaction with dynamic features</b><br>
+                    Name resolution of free variables occurs at runtime, not at compile time. This means that the
+                    following code will print 42:
+                    <p class="code-block">
+                        <code>
+                            i = 10<br>
+                            def f():<br>
+                            print(i)<br>
+                            i = 42<br>
+                            f()
+                        </code>
+                    </p>
+                    <p>
+                        The eval() and exec() functions do not have access to the full environment for resolving names.
+                        Names may be resolved in the local and global namespaces of the caller. Free variables are not
+                        resolved in the nearest enclosing namespace, but in the global namespace. 1 The exec() and
+                        eval()
+                        functions have optional arguments to override the global and local namespace. If only one
+                        namespace
+                        is specified, it is used for both.
+                    </p>
+                </p>
+                <p>
+                    <b>Exceptions</b><br>
+                    Exceptions are a means of breaking out of the normal flow of control of a code block in order to
+                    handle errors or other exceptional conditions. An exception is raised at the point where the error
+                    is detected; it may be handled by the surrounding code block or by any code block that directly or
+                    indirectly invoked the code block where the error occurred.
+
+                    The Python interpreter raises an exception when it detects a run-time error (such as division by
+                    zero). A Python program can also explicitly raise an exception with the raise statement. Exception
+                    handlers are specified with the try … except statement. The finally clause of such a statement can
+                    be used to specify cleanup code which does not handle the exception, but is executed whether an
+                    exception occurred or not in the preceding code.
+
+                    Python uses the “termination” model of error handling: an exception handler can find out what
+                    happened and continue execution at an outer level, but it cannot repair the cause of the error and
+                    retry the failing operation (except by re-entering the offending piece of code from the top).
+
+                    When an exception is not handled at all, the interpreter terminates execution of the program, or
+                    returns to its interactive main loop. In either case, it prints a stack traceback, except when the
+                    exception is SystemExit.
+
+                    Exceptions are identified by class instances. The except clause is selected depending on the class
+                    of the instance: it must reference the class of the instance or a base class thereof. The instance
+                    can be received by the handler and can carry additional information about the exceptional condition.
+                </p>
+            </article>
+        </section>
+        <section class="main-section">
+            <header class="section-title" id="the-import-system">The Import System</header>
+            <article>
+                <p>
+                    Python code in one module gains access to the code in another module by the process of importing it.
+                    The import statement is the most common way of invoking the import machinery, but it is not the only
+                    way. Functions such as importlib.import_module() and built-in __import__() can also be used to
+                    invoke the import machinery.
+
+                    The import statement combines two operations; it searches for the named module, then it binds the
+                    results of that search to a name in the local scope. The search operation of the import statement is
+                    defined as a call to the __import__() function, with the appropriate arguments. The return value of
+                    __import__() is used to perform the name binding operation of the import statement. See the import
+                    statement for the exact details of that name binding operation.
+
+                    A direct call to __import__() performs only the module search and, if found, the module creation
+                    operation. While certain side-effects may occur, such as the importing of parent packages, and the
+                    updating of various caches (including sys.modules), only the import statement performs a name
+                    binding operation.
+
+                    When an import statement is executed, the standard builtin __import__() function is called. Other
+                    mechanisms for invoking the import system (such as importlib.import_module()) may choose to bypass
+                    __import__() and use their own solutions to implement import semantics.
+                </p>
+                <p>
+                    <b>Packages</b><br>
+                    Python has only one type of module object, and all modules are of this type, regardless of whether
+                    the module is implemented in Python, C, or something else. To help organize modules and provide a
+                    naming hierarchy, Python has a concept of packages.
+
+                    You can think of packages as the directories on a file system and modules as files within
+                    directories, but don’t take this analogy too literally since packages and modules need not originate
+                    from the file system. For the purposes of this documentation, we’ll use this convenient analogy of
+                    directories and files. Like file system directories, packages are organized hierarchically, and
+                    packages may themselves contain subpackages, as well as regular modules.
+
+                    It’s important to keep in mind that all packages are modules, but not all modules are packages. Or
+                    put another way, packages are just a special kind of module. Specifically, any module that contains
+                    a __path__ attribute is considered a package.
+
+                    All modules have a name. Subpackage names are separated from their parent package name by a dot,
+                    akin to Python’s standard attribute access syntax. Thus you might have a module called sys and a
+                    package called email, which in turn has a subpackage called email.mime and a module within that
+                    subpackage called email.mime.text.
+                </p>
+                <p>
+                    <b>Regular packages</b><br>
+                    Python defines two types of packages, regular packages and namespace packages. Regular packages are
+                    traditional packages as they existed in Python 3.2 and earlier. A regular package is typically
+                    implemented as a directory containing an __init__.py file. When a regular package is imported, this
+                    __init__.py file is implicitly executed, and the objects it defines are bound to names in the
+                    package’s namespace. The __init__.py file can contain the same Python code that any other module can
+                    contain, and Python will add some additional attributes to the module when it is imported.
+
+                    For example, the following file system layout defines a top level parent package with three
+                    subpackages:
+                    <p class="code-block">
+                        <code>
+                            parent/<br>
+                            __init__.py<br>
+                            one/<br>
+                            __init__.py<br>
+                            two/<br>
+                            __init__.py<br>
+                            three/<br>
+                            __init__.py
+                        </code>
+                    </p>
+                </p>
+            </article>
+        </section>
+        <section class="main-section">
+            <header class="section-title" id="expressions">Expressions</header>
+            <article>
+                <p>
+                    <b>Atoms</b><br>
+                    Atoms are the most basic elements of expressions. The simplest atoms are identifiers or literals.
+                    Forms enclosed in parentheses, brackets or braces are also categorized syntactically as atoms. The
+                    syntax for atoms is:
+                    <p class="code-block">
+                        <code>
+                            atom ::= identifier | literal | enclosure<br>
+                            enclosure ::= parenth_form | list_display | dict_display | set_display<br>
+                            | generator_expression | yield_atom
+                        </code>
+                    </p>
+                </p>
+                <p>
+                    <b>Parenthesized forms</b><br>
+                    A parenthesized form is an optional expression list enclosed in parentheses
+                    <p class="code-block">
+                        <code>
+                            parenth_form ::= "(" [starred_expression] ")"
+                        </code>
+                    </p>
+                </p>
+            </article>
+        </section>
+        <section class="main-section reference">
+            <header class="section-title" id="references">Reference</header>
+            <p>All text in this project are taken from the <a href="https://docs.python.org/">Official Python
+                    Documentation</a></p>
+        </section>
+    </main>
+</body>
+
+</html>
